@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Неосвещаемая комната Пенроуза</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #05060d;
+    --panel:       #0b0d18;
+    --ink:         #d8dbe8;
+    --ink-dim:     #7a8098;
+    --ink-faint:   #4a4f62;
+    --line:        #1a1d2e;
+    --accent:      #c4a558;   /* warm brass */
+    --accent-hot:  #ffe59a;
+    --focal:       #ff5d7a;
+    --wall:        #545c78;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body {
+    color: var(--ink);
+    font-family: "Fraunces", Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    min-height: 100vh;
+    padding: 28px 20px 40px;
+    display: flex;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(196,165,88,0.04), transparent 60%),
+      var(--bg);
+  }
+  .app { width: 100%; max-width: 880px; }
+
+  header { margin-bottom: 22px; }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-family: "Fraunces", serif;
+    font-weight: 300;
+    font-size: clamp(26px, 4vw, 38px);
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent-hot);
+  }
+  .subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-dim);
+    max-width: 540px;
+    line-height: 1.5;
+  }
+
+  .stage {
+    position: relative;
+    background: linear-gradient(180deg, #07081195 0%, #05060d 100%);
+    padding: 8px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.02),
+      0 30px 60px -30px rgba(0,0,0,0.8);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 9px;
+    cursor: crosshair;
+    touch-action: none;
+    aspect-ratio: 4 / 3;
+  }
+
+  .hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    pointer-events: none;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .hud .dot { color: var(--accent); }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto auto;
+    gap: 16px 22px;
+    margin-top: 18px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    align-items: end;
+  }
+  @media (max-width: 640px) {
+    .controls { grid-template-columns: 1fr 1fr; }
+  }
+  .ctrl label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .ctrl label span {
+    color: var(--accent-hot);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .ctrl input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .ctrl input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--line);
+    border-radius: 1px;
+  }
+  .ctrl input[type="range"]::-moz-range-track {
+    height: 2px;
+    background: var(--line);
+    border-radius: 1px;
+  }
+  .ctrl input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-hot);
+    margin-top: -6px;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent);
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .ctrl input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .ctrl input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-hot);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent);
+    cursor: pointer;
+  }
+
+  button {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    padding: 9px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  button:hover {
+    color: var(--ink);
+    border-color: var(--ink-faint);
+  }
+  button.active {
+    color: var(--focal);
+    border-color: var(--focal);
+    background: rgba(255,93,122,0.08);
+  }
+
+  .info {
+    margin-top: 22px;
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.65;
+    max-width: 720px;
+  }
+  .info em { color: var(--accent-hot); font-style: italic; }
+  .info .note {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">— Roger Penrose, 1958</div>
+    <h1>Неосвещаемая <em>комната</em></h1>
+    <p class="subtitle">Помещение, в котором — как бы ярко ни светил точечный источник света — всегда остаются точки, куда свет не попадает ни после одного, ни после миллиона отражений.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="canvas"></canvas>
+    <div class="hud">
+      <div><span class="dot">●</span> кликни в комнате</div>
+      <div>потяни, чтобы двигать источник</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl">
+      <label>лучей <span id="raysVal">600</span></label>
+      <input type="range" id="rays" min="100" max="2400" step="100" value="600">
+    </div>
+    <div class="ctrl">
+      <label>отражений <span id="bouncesVal">50</span></label>
+      <input type="range" id="bounces" min="5" max="150" step="5" value="50">
+    </div>
+    <div class="ctrl">
+      <label>яркость <span id="opacityVal">0.08</span></label>
+      <input type="range" id="opacity" min="0.01" max="0.5" step="0.01" value="0.08">
+    </div>
+    <button id="fociBtn">фокусы</button>
+    <button id="clearBtn">сброс</button>
+  </div>
+
+  <div class="info">
+    Верхняя и нижняя стенки — это <em>половинки эллипса</em>. Два «гриба» размещены так, что их углы точно совпадают с фокусами эллипса (включи переключатель <em>фокусы</em>, чтобы увидеть).
+    Ключевое свойство эллипса: луч, проходящий через один фокус, после отражения от стенки пройдёт через другой.
+    Эта геометрия делит комнату на области, между которыми свет не может перетечь — попробуй поставить источник в верхней половине и посмотри, куда свет <em>не попадает никогда</em>.
+    <div class="note">Penrose's Unilluminable Room · 1958 · Straus's problem</div>
+  </div>
+</div>
+
+<script>
+// =================== CANVAS SETUP ===================
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = 800, H = 600;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+canvas.width  = W * dpr;
+canvas.height = H * dpr;
+ctx.scale(dpr, dpr);
+
+// =================== GEOMETRY ===================
+// Origin at center, y-up (math convention). Convert to canvas via toCX/toCY.
+const A = 340;    // outer ellipse: horizontal semi-axis (major)
+const B = 250;    // outer ellipse: vertical semi-axis (minor)
+const c = Math.sqrt(A*A - B*B);          // focus distance ≈ 230.43
+const headR = 55; // mushroom head radius
+const δ = 14;     // slit half-height
+const stemEndX = A * Math.sqrt(1 - (δ*δ)/(B*B));
+
+function toCX(x) { return W/2 + x; }
+function toCY(y) { return H/2 - y; }
+
+// =================== WALLS ===================
+const walls = [
+  { kind: 'ellipse', cx: 0, cy: 0, rx: A, ry: B },
+
+  // RIGHT mushroom: head bulges LEFT (into room)
+  { kind: 'arc', cx:  c, cy: 0, r: headR, side: 'left'  },
+  { kind: 'seg', x1:  c, y1:  δ,     x2:  c, y2:  headR },
+  { kind: 'seg', x1:  c, y1: -headR, x2:  c, y2: -δ     },
+  { kind: 'seg', x1:  c, y1:  δ,     x2:  stemEndX, y2:  δ },
+  { kind: 'seg', x1:  c, y1: -δ,     x2:  stemEndX, y2: -δ },
+
+  // LEFT mushroom: mirror
+  { kind: 'arc', cx: -c, cy: 0, r: headR, side: 'right' },
+  { kind: 'seg', x1: -c, y1:  δ,     x2: -c, y2:  headR },
+  { kind: 'seg', x1: -c, y1: -headR, x2: -c, y2: -δ     },
+  { kind: 'seg', x1: -c, y1:  δ,     x2: -stemEndX, y2:  δ },
+  { kind: 'seg', x1: -c, y1: -δ,     x2: -stemEndX, y2: -δ },
+];
+
+// =================== RAY–WALL INTERSECTIONS ===================
+function isectSeg(px, py, dx, dy, x1, y1, x2, y2) {
+  const sx = x2 - x1, sy = y2 - y1;
+  const denom = dx * sy - dy * sx;
+  if (Math.abs(denom) < 1e-12) return null;
+  const t = ((x1 - px) * sy - (y1 - py) * sx) / denom;
+  const u = ((x1 - px) * dy - (y1 - py) * dx) / denom;
+  if (t < 1e-6 || u < 0 || u > 1) return null;
+  const len = Math.hypot(sx, sy);
+  return { t, x: px + t*dx, y: py + t*dy, nx: -sy/len, ny: sx/len };
+}
+
+function isectEllipse(px, py, dx, dy, cx, cy, rx, ry) {
+  const ex = px - cx, ey = py - cy;
+  const a = (dx*dx)/(rx*rx) + (dy*dy)/(ry*ry);
+  const b = 2 * ((ex*dx)/(rx*rx) + (ey*dy)/(ry*ry));
+  const k = (ex*ex)/(rx*rx) + (ey*ey)/(ry*ry) - 1;
+  const disc = b*b - 4*a*k;
+  if (disc < 0) return null;
+  const sq = Math.sqrt(disc);
+  const t1 = (-b - sq) / (2*a);
+  const t2 = (-b + sq) / (2*a);
+  const t = t1 > 1e-6 ? t1 : (t2 > 1e-6 ? t2 : null);
+  if (t === null) return null;
+  const hx = px + t*dx, hy = py + t*dy;
+  let nx = (hx - cx) / (rx*rx);
+  let ny = (hy - cy) / (ry*ry);
+  const L = Math.hypot(nx, ny);
+  return { t, x: hx, y: hy, nx: nx/L, ny: ny/L };
+}
+
+function isectArc(px, py, dx, dy, cx, cy, r, side) {
+  const ex = px - cx, ey = py - cy;
+  const a = dx*dx + dy*dy;
+  const b = 2 * (ex*dx + ey*dy);
+  const k = ex*ex + ey*ey - r*r;
+  const disc = b*b - 4*a*k;
+  if (disc < 0) return null;
+  const sq = Math.sqrt(disc);
+  const ts = [(-b - sq)/(2*a), (-b + sq)/(2*a)].sort((p,q) => p - q);
+  for (const t of ts) {
+    if (t < 1e-6) continue;
+    const hx = px + t*dx, hy = py + t*dy;
+    if (side === 'left'  && hx > cx + 1e-9) continue;
+    if (side === 'right' && hx < cx - 1e-9) continue;
+    return { t, x: hx, y: hy, nx: (hx - cx)/r, ny: (hy - cy)/r };
+  }
+  return null;
+}
+
+function isectWall(w, px, py, dx, dy) {
+  if (w.kind === 'ellipse') return isectEllipse(px, py, dx, dy, w.cx, w.cy, w.rx, w.ry);
+  if (w.kind === 'seg')     return isectSeg(px, py, dx, dy, w.x1, w.y1, w.x2, w.y2);
+  if (w.kind === 'arc')     return isectArc(px, py, dx, dy, w.cx, w.cy, w.r, w.side);
+  return null;
+}
+
+// =================== RAY TRACING ===================
+function traceRay(px, py, dx, dy, bounces) {
+  // Flat array of coords: [x0,y0, x1,y1, ...]
+  const pts = [px, py];
+  for (let i = 0; i < bounces; i++) {
+    let best = null;
+    for (const w of walls) {
+      const hit = isectWall(w, px, py, dx, dy);
+      if (hit && (!best || hit.t < best.t)) best = hit;
+    }
+    if (!best) break;
+    pts.push(best.x, best.y);
+    const dot = dx * best.nx + dy * best.ny;
+    dx -= 2 * dot * best.nx;
+    dy -= 2 * dot * best.ny;
+    // Step off the wall along the new direction to avoid numerical re-hits
+    px = best.x + 1e-4 * dx;
+    py = best.y + 1e-4 * dy;
+  }
+  return pts;
+}
+
+// =================== ROOM TEST ===================
+function inRoom(x, y) {
+  // Safety margin so clicks near walls don't place source ON a wall
+  const m = 4;
+  if ((x*x)/((A-m)*(A-m)) + (y*y)/((B-m)*(B-m)) > 1) return false;
+
+  // Right mushroom cutout (head + stem)
+  if (x <= c + m && (x-c)*(x-c) + y*y <= (headR+m)*(headR+m)) return false;
+  if (x >= c - m && x <= stemEndX && Math.abs(y) <= δ + m) return false;
+
+  // Left mushroom cutout (mirror)
+  if (x >= -c - m && (x+c)*(x+c) + y*y <= (headR+m)*(headR+m)) return false;
+  if (x <= -c + m && x >= -stemEndX && Math.abs(y) <= δ + m) return false;
+
+  return true;
+}
+
+// =================== STATE ===================
+let source = null;
+let showFoci = false;
+let numRays = 600;
+let numBounces = 50;
+let rayOpacity = 0.08;
+
+// =================== DRAWING ===================
+function drawRoomFill() {
+  // Subtle dark-violet tint inside the room, clipped to ellipse minus cutouts
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(W/2, H/2, A, B, 0, 0, 2*Math.PI);
+  ctx.clip();
+
+  const g = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(A, B));
+  g.addColorStop(0, 'rgba(22, 20, 48, 0.55)');
+  g.addColorStop(1, 'rgba(10, 8, 28, 0.3)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // Cut the mushrooms out (paint them with background color)
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = '#000';
+
+  // Right mushroom path
+  ctx.beginPath();
+  ctx.moveTo(toCX(stemEndX), toCY(δ));
+  ctx.lineTo(toCX(c), toCY(δ));
+  ctx.lineTo(toCX(c), toCY(headR));
+  ctx.arc(toCX(c), toCY(0), headR, -Math.PI/2, Math.PI/2, true);
+  ctx.lineTo(toCX(c), toCY(-δ));
+  ctx.lineTo(toCX(stemEndX), toCY(-δ));
+  ctx.closePath();
+  ctx.fill();
+
+  // Left mushroom path
+  ctx.beginPath();
+  ctx.moveTo(toCX(-stemEndX), toCY(δ));
+  ctx.lineTo(toCX(-c), toCY(δ));
+  ctx.lineTo(toCX(-c), toCY(headR));
+  ctx.arc(toCX(-c), toCY(0), headR, -Math.PI/2, Math.PI/2, false);
+  ctx.lineTo(toCX(-c), toCY(-δ));
+  ctx.lineTo(toCX(-stemEndX), toCY(-δ));
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawWalls() {
+  ctx.strokeStyle = 'rgba(132, 142, 168, 0.75)';
+  ctx.lineWidth = 1.4;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Outer ellipse
+  ctx.beginPath();
+  ctx.ellipse(W/2, H/2, A, B, 0, 0, 2*Math.PI);
+  ctx.stroke();
+
+  // Right mushroom outline
+  ctx.beginPath();
+  ctx.moveTo(toCX(stemEndX), toCY(δ));
+  ctx.lineTo(toCX(c), toCY(δ));
+  ctx.lineTo(toCX(c), toCY(headR));
+  ctx.arc(toCX(c), toCY(0), headR, -Math.PI/2, Math.PI/2, true);
+  ctx.lineTo(toCX(c), toCY(-δ));
+  ctx.lineTo(toCX(stemEndX), toCY(-δ));
+  ctx.stroke();
+
+  // Left mushroom outline
+  ctx.beginPath();
+  ctx.moveTo(toCX(-stemEndX), toCY(δ));
+  ctx.lineTo(toCX(-c), toCY(δ));
+  ctx.lineTo(toCX(-c), toCY(headR));
+  ctx.arc(toCX(-c), toCY(0), headR, -Math.PI/2, Math.PI/2, false);
+  ctx.lineTo(toCX(-c), toCY(-δ));
+  ctx.lineTo(toCX(-stemEndX), toCY(-δ));
+  ctx.stroke();
+}
+
+function drawFoci() {
+  ctx.save();
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = '#ff5d7a';
+  ctx.fillStyle = '#ff5d7a';
+  ctx.beginPath();
+  ctx.arc(toCX(c), toCY(0), 3.5, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(toCX(-c), toCY(0), 3.5, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.restore();
+
+  // Subtle label
+  ctx.fillStyle = 'rgba(255, 93, 122, 0.55)';
+  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('F₁', toCX(-c), toCY(0) - 12);
+  ctx.fillText('F₂', toCX(c),  toCY(0) - 12);
+}
+
+function drawRays() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = `rgba(255, 212, 128, ${rayOpacity})`;
+  ctx.lineWidth = 0.6;
+  ctx.lineCap = 'butt';
+
+  const twoPi = 2 * Math.PI;
+  for (let i = 0; i < numRays; i++) {
+    const angle = (twoPi * i) / numRays + 0.00001;
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    const pts = traceRay(source.x, source.y, dx, dy, numBounces);
+    if (pts.length < 4) continue;
+    ctx.beginPath();
+    ctx.moveTo(toCX(pts[0]), toCY(pts[1]));
+    for (let j = 2; j < pts.length; j += 2) {
+      ctx.lineTo(toCX(pts[j]), toCY(pts[j+1]));
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSource() {
+  const sx = toCX(source.x), sy = toCY(source.y);
+  // Outer glow
+  const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 22);
+  g.addColorStop(0,   'rgba(255, 245, 200, 0.85)');
+  g.addColorStop(0.4, 'rgba(255, 220, 140, 0.35)');
+  g.addColorStop(1,   'rgba(255, 200, 100, 0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(sx, sy, 22, 0, 2*Math.PI);
+  ctx.fill();
+
+  // Bright core
+  ctx.fillStyle = '#fff5c8';
+  ctx.beginPath();
+  ctx.arc(sx, sy, 3, 0, 2*Math.PI);
+  ctx.fill();
+}
+
+function render() {
+  ctx.fillStyle = '#05060d';
+  ctx.fillRect(0, 0, W, H);
+
+  drawRoomFill();
+  if (source) drawRays();
+  drawWalls();
+  if (showFoci) drawFoci();
+  if (source) drawSource();
+}
+
+// =================== INTERACTION ===================
+let pending = false;
+function scheduleRender() {
+  if (pending) return;
+  pending = true;
+  requestAnimationFrame(() => { pending = false; render(); });
+}
+
+function setSourceFromEvent(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (clientX - rect.left) * (W / rect.width)  - W/2;
+  const y = H/2 - (clientY - rect.top) * (H / rect.height);
+  if (inRoom(x, y)) {
+    source = { x, y };
+    scheduleRender();
+  }
+}
+
+let dragging = false;
+canvas.addEventListener('mousedown', (e) => { dragging = true;  setSourceFromEvent(e.clientX, e.clientY); });
+canvas.addEventListener('mousemove', (e) => { if (dragging) setSourceFromEvent(e.clientX, e.clientY); });
+window.addEventListener('mouseup',   () => { dragging = false; });
+canvas.addEventListener('mouseleave',() => { dragging = false; });
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  dragging = true;
+  const t = e.touches[0];
+  setSourceFromEvent(t.clientX, t.clientY);
+}, { passive: false });
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (dragging) {
+    const t = e.touches[0];
+    setSourceFromEvent(t.clientX, t.clientY);
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', () => { dragging = false; });
+
+// Sliders
+const raysSlider    = document.getElementById('rays');
+const bouncesSlider = document.getElementById('bounces');
+const opacitySlider = document.getElementById('opacity');
+const raysVal    = document.getElementById('raysVal');
+const bouncesVal = document.getElementById('bouncesVal');
+const opacityVal = document.getElementById('opacityVal');
+
+raysSlider.addEventListener('input', (e) => {
+  numRays = +e.target.value;
+  raysVal.textContent = numRays;
+  scheduleRender();
+});
+bouncesSlider.addEventListener('input', (e) => {
+  numBounces = +e.target.value;
+  bouncesVal.textContent = numBounces;
+  scheduleRender();
+});
+opacitySlider.addEventListener('input', (e) => {
+  rayOpacity = +e.target.value;
+  opacityVal.textContent = rayOpacity.toFixed(2);
+  scheduleRender();
+});
+
+// Buttons
+const fociBtn = document.getElementById('fociBtn');
+fociBtn.addEventListener('click', () => {
+  showFoci = !showFoci;
+  fociBtn.classList.toggle('active', showFoci);
+  scheduleRender();
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  source = null;
+  scheduleRender();
+});
+
+// Initial paint
+render();
+</script>
+</body>
+</html>
